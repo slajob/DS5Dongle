@@ -1,0 +1,61 @@
+name: Build Decky plugin
+
+# Builds the DS5 Bridge Decky Loader plugin (decky-plugin/), runs the daemon's
+# end-to-end tests and uploads the installable ds5-bridge.zip as an artifact.
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "decky-plugin/**"
+      - "src/usb_descriptors.cpp"
+      - ".github/workflows/decky-plugin.yml"
+  pull_request:
+    paths:
+      - "decky-plugin/**"
+      - "src/usb_descriptors.cpp"
+      - ".github/workflows/decky-plugin.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test plugin
+    # Ubuntu 22.04 ships glibc 2.35, so the daemon runs on SteamOS 3.5 and newer.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the firmware's Opus submodule
+        run: git submodule update --init lib/opus
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: decky-plugin/pnpm-lock.yaml
+
+      - name: Check generated HID descriptors match the firmware
+        working-directory: decky-plugin/backend
+        run: |
+          python3 tools/gen_descriptors.py
+          git diff --exit-code src/hid_report_descriptors.inc
+
+      - name: Build, test and package
+        working-directory: decky-plugin
+        run: ./build.sh
+
+      - name: Show glibc requirement
+        run: objdump -T decky-plugin/backend/out/ds5bridged | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds5-bridge-plugin
+          path: decky-plugin/out/ds5-bridge.zip
