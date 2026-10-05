@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+bin/
+backend/build/
+backend/out/
+__pycache__/
+*.zip
+backend/build-release/

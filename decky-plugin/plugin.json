@@ -1,0 +1,11 @@
+{
+  "name": "DS5 Bridge",
+  "author": "DS5Dongle contributors",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["controller", "dualsense", "haptics", "audio"],
+    "description": "Use a Bluetooth DualSense like a wired one: HD haptics, controller speaker, headset jack, microphone and adaptive triggers, without the Pico dongle.",
+    "image": ""
+  }
+}
